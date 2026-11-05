@@ -1,0 +1,11 @@
+========================================================================================================================,,,,,,,,
+File Design Information:,,,,,,,,
+,,,,,,,,
+Date:       27/11/20,,,,,,,,
+Time:       09:50,,,,,,,,
+Revision:   Not in VersionControl,,,,,,,,
+Variant:    No variations,,,,,,,,
+Units used: mm,,,,,,,,
+,,,,,,,,
+Designator,Description,Comment,FP,Digikey P/N,Layer,Center-X(mm),Center-Y(mm),Rotation
+Overflow,2 Wire,Interconnect 1,Connecting Wire,A100192-ND,BottomLayer,33.35,9.3,180

@@ -1,0 +1,19 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: BeagleBoneBoard.PcbDoc   24/02/2020  11:22:19 AM
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : BeagleBoneBoard-RoundHoles.TXT
+ASCII SlotHoles File : BeagleBoneBoard-SlotHoles.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      16mil (0.4mm)                                             Round             129       PTH        24.45inch (621.00mm)
+T2      20mil (0.5mm)                                             Slot              24        PTH        12.58inch (319.43mm)
+T3      40mil (1.016mm)                                           Round             92        PTH        11.10inch (281.94mm)
+T4      125mil (3.175mm)                                          Round             3         PTH        5.75inch (146.08mm)
+T5      128mil (3.25mm)                                           Round             1         PTH        0.00inch (0.00mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              249
+
+Total Processing Time (hh:mm:ss) : 00:00:00

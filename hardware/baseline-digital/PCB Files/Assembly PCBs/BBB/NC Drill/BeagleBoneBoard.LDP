@@ -1,0 +1,3 @@
+Layer Pairs Export File for PCB: C:\Users\Harrison\Dropbox\PhD\Turbidostat\V2\PCBs\BeagleBoneBoard\BeagleBoneBoard.PcbDoc
+LayersSetName=Top_Bot_Thru_Holes|DrillFile=beagleboneboard-roundholes.txt|DrillLayers=gtl,gbl
+LayersSetName=Top_Bot_Slot_Holes|DrillFile=beagleboneboard-slotholes.txt|DrillLayers=gtl,gbl

@@ -1,0 +1,2 @@
+1. Ensure the central holes in StructHorizontal, LaserMeasure, BraceHorizontal are precisely between 24.7mm and 24.9mm in diameter. 
+2. Ensure a reputable supplier for the ADL65052TL laser diode. Some suppliers have as much as 10% defective stock. 

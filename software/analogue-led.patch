@@ -1,0 +1,156 @@
+--- /tmp/claude-0/-home-user-chiBioAnalogue/556b877d-fa11-5013-8558-68bf8dac6935/scratchpad/app_orig.py	2026-11-05 08:02:50.432437596 +0000
++++ software/app.py	2026-11-05 08:03:11.448850648 +0000
+@@ -1,4 +1,8 @@
+-######### Chi.Bio Operating System V1.0 #########
++######### Chi.Bio Operating System V1.0 - ANALOGUE LED (CCR) VARIANT #########
++# Modified from the original Chi.Bio software. LEDs and the UV LED are driven by analogue
++# constant-current-regulator (CCR) stages whose set-point is a DC voltage from I2C DACs,
++# instead of a PWM signal. Stir, Heat and Pumps still use the PCA9685 PWM chips.
++# See docs/ANALOGUE_LED_DESIGN.md. Set LED_DRIVE_MODE='PWM' to run on the original digital boards.
+ 
+ #Import required python packages
+ import os
+@@ -110,6 +114,24 @@
+         sysDevices[M]=copy.deepcopy(sysDevices['M0'])
+         
+ 
++# ---- Analogue LED driver configuration ----------------------------------------------------
++LED_DRIVE_MODE = 'ANALOGUE'   # 'ANALOGUE' = DAC-set CCR current (this variant); 'PWM' = original digital LED boards.
++LED_DAC_BITS = 12             # Resolution of the LED DACs (DAC7578 = 12 bit).
++# I2C addresses of the two octal LED DACs on the Side board (seen through each device's own mux channel).
++# 0x48 is taken by the laser DAC, so these must differ from it. CONFIRM against the DAC datasheet / ADD0 strapping.
++LED_DAC_ADDRESSES = {'LEDDAC0' : 0x4A, 'LEDDAC1' : 0x4C}
++# Output name -> (DAC chip, DAC channel 0-7). Channel numbering follows the Side board netlist.
++LED_DAC_MAP = {
++    'LEDA' : ('LEDDAC0', 0), 'LEDB' : ('LEDDAC0', 1), 'LEDC' : ('LEDDAC0', 2), 'LEDD' : ('LEDDAC0', 3),
++    'LEDE' : ('LEDDAC0', 4), 'LEDF' : ('LEDDAC0', 5), 'LEDG' : ('LEDDAC0', 6), 'LEDH' : ('LEDDAC0', 7),
++    'LEDI' : ('LEDDAC1', 0), 'UV'   : ('LEDDAC1', 1),
++}
++# Highest DAC fraction allowed per output (0-1). Lets you clamp a channel to its safe LED current without touching
++# the user-facing 0-1 intensity scale. Set after measuring each channel's current at full scale.
++LED_DAC_FULLSCALE = {name : 1.0 for name in LED_DAC_MAP}
++# Optional per-channel offset in DAC codes added whenever a channel is ON (compensates op-amp offset / dead-band).
++LED_DAC_OFFSET_CODES = {name : 0 for name in LED_DAC_MAP}
++
+ #sysItems stores information about digital addresses which is used as a reference for all devices.        
+ sysItems = {
+     'Multiplexer' : {'device' : 0 , 'M0' : '00000001','M1' : '00000010','M2' : '00000100','M3' : '00001000','M4' : '00010000','M5' : '00100000','M6' : '01000000','M7' : '10000000'},
+@@ -359,6 +381,8 @@
+     sysDevices[M]['Pumps']['device']=I2C.get_i2c_device(0x61,2) #Get OD Chip on Bus 2!!!!!
+     sysDevices[M]['Pumps']['startup']=0
+     sysDevices[M]['Pumps']['frequency']=0x1e #200Hz PWM frequency
++    for dacName in LED_DAC_ADDRESSES:
++        sysDevices[M][dacName]={'device' : I2C.get_i2c_device(LED_DAC_ADDRESSES[dacName],2)}
+     sysDevices[M]['PWM']['device']=I2C.get_i2c_device(0x60,2) #Get OD Chip on Bus 2!!!!!
+     sysDevices[M]['PWM']['startup']=0
+     sysDevices[M]['PWM']['frequency']=0x03# 0x14 = 300hz, 0x03 is 1526 Hz PWM frequency for fan/LEDs, maximum possible. Potentially dial this down if you are getting audible ringing in the device! 
+@@ -462,6 +486,7 @@
+     sysData[M]['UV']['ON']=0
+     
+     I2CCom(M,'DAC',0,8,int('00000000',2),int('00000000',2),0)#Sets all DAC Channels to zero!!! 
++    setAllLEDsZero(M)
+     setPWM(M,'PWM',sysItems['All'],0,0)
+     setPWM(M,'Pumps',sysItems['All'],0,0)
+     
+@@ -688,7 +713,7 @@
+     elif(item=='Heat'):
+         setPWM(M,'PWM',sysItems[item],sysData[M][item]['target']*float(sysData[M][item]['ON']),0)
+     elif(item=='UV'):
+-        setPWM(M,'PWM',sysItems[item],sysData[M][item]['target']*float(sysData[M][item]['ON']),0)
++        setLED(M,item,sysData[M][item]['target']*float(sysData[M][item]['ON']))
+     elif (item=='Thermostat'):
+         sysDevices[M][item]['thread']=Thread(target = Thermostat, args=(M,item))
+         sysDevices[M][item]['thread'].setDaemon(True)
+@@ -710,7 +735,7 @@
+         sysData[M]['Zigzag']['SwitchPoint']=sysData[M]['Experiment']['cycles']
+     
+     elif (item=='LEDA' or item=='LEDC' or item=='LEDD' or item=='LEDE' or item=='LEDF' or item=='LEDG' or item == 'LEDH'): 
+-        setPWM(M,'PWM',sysItems[item],sysData[M][item]['target']*float(sysData[M][item]['ON']),0)
++        setLED(M,item,sysData[M][item]['target']*float(sysData[M][item]['ON']))
+     elif (item=='LEDB' or item == 'LEDI'): #We must handle these differently in case they are simultaneously being used to mix with LEDV
+         if (sysData[M]['LEDV']['target']*float(sysData[M]['LEDV']['ON'])>0): #If LEDV is on, we need to make up the difference in these other LEDs.
+             # First determine what is the intensity for this LED required to maintain current LEDV level. Note we have alreayd checked that LEDV is on.
+@@ -723,10 +748,10 @@
+             if (NewIntensity>1.0):
+                 NewIntensity=1.0
+                 
+-            setPWM(M,'PWM',sysItems[item],NewIntensity,0)
++            setLED(M,item,NewIntensity)
+ 
+         else:
+-            setPWM(M,'PWM',sysItems[item],sysData[M][item]['target']*float(sysData[M][item]['ON']),0)
++            setLED(M,item,sysData[M][item]['target']*float(sysData[M][item]['ON']))
+     elif (item=='LEDV'): #This is the virtual white LED which is made by combinng LEDB and LEDI
+         LEDB_Intensity = sysData[M]['LEDV']['target']*float(sysData[M]['LEDV']['ON'])*sysData[M]['LEDV']['ScaleFactor'] #This is the intensity of the blue we want mixed into our white light
+         LEDB_Intensity = LEDB_Intensity + sysData[M]['LEDB']['target']*float(sysData[M]['LEDB']['ON']) #This adds the intensity of the blue we already have on
+@@ -739,8 +764,8 @@
+         if (LEDI_Intensity>1.0):
+             LEDI_Intensity=1.0
+ 
+-        setPWM(M,'PWM',sysItems['LEDB'],LEDB_Intensity,0)
+-        setPWM(M,'PWM',sysItems['LEDI'],LEDI_Intensity,0)
++        setLED(M,'LEDB',LEDB_Intensity)
++        setLED(M,'LEDI',LEDI_Intensity)
+         
+     elif(item == 'LASER650'): #This is if we are setting the Laser
+         
+@@ -1419,6 +1444,8 @@
+     data1=int(data1) #First data/register 
+     if hl<20:
+         data2=int(data2) #First data/register 
++    if hl==24:
++        data1=int(data1) #Command byte; data2 is left as a list of bytes
+     global sysItems
+     global sysData
+     
+@@ -1494,6 +1521,9 @@
+                     elif(hl==16):
+                         sysDevices[M][device]['device'].write16(data1,data2)
+                         out=1
++                    elif(hl==24): #Command byte (data1) followed by a list of data bytes (data2). Used by the LED DACs.
++                        sysDevices[M][device]['device'].writeList(data1,data2)
++                        out=1
+                     
+             elif SMBUSFLAG==1:
+                 out=sysDevices[M][device]['device'].read_word_data(sysDevices[M][device]['address'],data1)
+@@ -1754,6 +1784,40 @@
+ 
+ 
+     
++def setLED(M,item,fraction):
++    #Sets an LED (or the UV LED) to a fraction (0-1) of its full-scale current.
++    #ANALOGUE mode: writes a DC set-point voltage to the LED's DAC channel; the CCR stage regulates the current. No PWM.
++    #PWM mode: original behaviour, kept so the same software can drive the digital boards.
++    global sysItems
++    fraction=min(max(float(fraction),0.0),1.0)
++    if LED_DRIVE_MODE=='PWM':
++        setPWM(M,'PWM',sysItems[item],fraction,0)
++        return
++    dacName,channel=LED_DAC_MAP[item]
++    maxCode=(1<<LED_DAC_BITS)-1
++    if fraction<=0.0:
++        code=0 #Off is always exactly zero-scale; the offset below only applies while ON.
++    else:
++        code=int(fraction*LED_DAC_FULLSCALE[item]*maxCode+0.5)+LED_DAC_OFFSET_CODES[item]
++        code=min(max(code,0),maxCode)
++    writeLEDDAC(M,dacName,channel,code)
++
++
++def writeLEDDAC(M,dacName,channel,code):
++    #DAC7578-style write: command byte 0x30|channel = "write to and update channel", then 16 bits with the 12-bit code left-justified.
++    shifted=code<<(16-LED_DAC_BITS)
++    I2CCom(M,dacName,0,24,0x30|(channel&0x07),[(shifted>>8)&0xFF,shifted&0xFF],0)
++
++
++def setAllLEDsZero(M):
++    #Drives every LED DAC channel to zero-scale (all LED current off).
++    if LED_DRIVE_MODE=='PWM':
++        return
++    for item in LED_DAC_MAP:
++        dacName,channel=LED_DAC_MAP[item]
++        writeLEDDAC(M,dacName,channel,0)
++
++
+ def setPWM(M,device,channels,fraction,ConsecutiveFails):
+     #Sets up the PWM chip (either the one in the reactor or on the pump board)
+     global sysItems

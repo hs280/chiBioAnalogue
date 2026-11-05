@@ -1,0 +1,34 @@
+========================================================================================================================,,,,,,,,
+File Design Information:,,,,,,,,
+,,,,,,,,
+Date:       10/07/19,,,,,,,,
+Time:       17:50,,,,,,,,
+Revision:   Not in VersionControl,,,,,,,,
+Variant:    No variations,,,,,,,,
+Units used: mm,,,,,,,,
+,,,,,,,,
+Designator,Description,Comment,FP,Digikey P/N,Layer,Center-X(mm),Center-Y(mm),Rotation
+R1-2,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,BottomLayer,73.2,59.9,90
+R1-1,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,BottomLayer,63.8,28.1,360
+MD1-2,Motor Driver,MotorDriver2,16-HTSSOP,296-38514-5-ND,BottomLayer,69.575,58.575,270
+C1-2,Capacitor,2.2 uF,0805 (2012 Metric),1276-6458-1-ND,BottomLayer,75.8,55.8,360
+C1-1,Capacitor,2.2 uF,0805 (2012 Metric),1276-6458-1-ND,BottomLayer,64.9,32.9,180
+H1,MicroUSB Connector,MicroUSB Side,MicroUSB Side,609-4618-1-ND,BottomLayer,-3.35,44,90
+PWM1,PWM,PWM28,28-TSSOP,568-11925-1-ND,BottomLayer,70.625,44.025,180
+PO4,Pump Assembly,PO1,,,Mechanical1,-31.4,-31.4,180
+PO3,Pump Assembly,PO1,,,Mechanical1,-31.4,-31.4,180
+PO2,Pump Assembly,PO1,,,Mechanical1,-31.4,-31.4,360
+PO1,Pump Assembly,PO1,,,Mechanical1,-31.4,-31.4,360
+H5,2 Position Connector,Interconnect 2,Mini CT 2POS,A98681-ND,BottomLayer,59.3,64.6,90
+H4,2 Position Connector,Interconnect 2,Mini CT 2POS,A98681-ND,BottomLayer,79.2,65.848,270
+H3,2 Position Connector,Interconnect 2,Mini CT 2POS,A98681-ND,BottomLayer,79.2,23.4,270
+H2,2 Position Connector,Interconnect 2,Mini CT 2POS,A98681-ND,BottomLayer,59.3,22.152,90
+MD1-1,Motor Driver,MotorDriver2,16-HTSSOP,296-38514-5-ND,BottomLayer,69.625,29.625,90
+C3-2,Capacitor,0.1 uF,0603 (1608 Metric),311-1341-1-ND,BottomLayer,17.9,44.7,270
+C3-1,Capacitor,0.1 uF,0603 (1608 Metric),311-1341-1-ND,BottomLayer,14.433,44.7,270
+C2-2,Capacitor,22 uF,0805 (2012 Metric),1276-6780-1-ND,BottomLayer,11.167,44.7,90
+C2-1,Capacitor,22 uF,0805 (2012 Metric),1276-6780-1-ND,BottomLayer,7.7,44.7,90
+C4-1,Capacitor,1uF,0603 (1608 Metric),1276-1019-1-ND,BottomLayer,49.3,41.2,270
+C5-1,Capacitor,4.7uF,0603 (1608 Metric),1276-1044-1-ND,BottomLayer,56.3,41.2,270
+C6-1,Capacitor,0.01uF,0603 (1608 Metric),445-5662-1-ND,BottomLayer,54.2,46.4,270
+Reg1,3.3V Regulator,3.3V Regulator,SOT-23-5,296-18476-1-ND,BottomLayer,52.9,42.95,360

@@ -1,0 +1,3 @@
+Layer Pairs Export File for PCB: C:\Users\Harrison\Dropbox\PhD\Turbidostat\V2\PCBs\Pump\Pump.PcbDoc
+LayersSetName=Top_Bot_Thru_Holes|DrillFile=pump-roundholes.txt|DrillLayers=gtl,gbl
+LayersSetName=Top_Bot_Slot_Holes|DrillFile=pump-slotholes.txt|DrillLayers=gtl,gbl

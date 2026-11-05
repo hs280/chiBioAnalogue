@@ -1,0 +1,15 @@
+========================================================================================================================,,,,,,,,
+File Design Information:,,,,,,,,
+,,,,,,,,
+Date:       10/07/19,,,,,,,,
+Time:       17:43,,,,,,,,
+Revision:   Not in VersionControl,,,,,,,,
+Variant:    No variations,,,,,,,,
+Units used: mm,,,,,,,,
+,,,,,,,,
+Designator,Description,Comment,FP,Digikey P/N,Layer,Center-X(mm),Center-Y(mm),Rotation
+Heat1,2 Wire,Interconnect 1,Connecting Wire,A100192-ND,TopLayer,34.45,4.1,360
+R1-1,Resistor,Heat,2512 (6432 Metric),A130709CT-ND,BottomLayer,21.068,21.068,225
+R1-2,Resistor,Heat,2512 (6432 Metric),A130709CT-ND,BottomLayer,28.732,21.068,315
+R1-3,Resistor,Heat,2512 (6432 Metric),A130709CT-ND,BottomLayer,21.068,28.732,135
+R1-4,Resistor,Heat,2512 (6432 Metric),A130709CT-ND,BottomLayer,28.732,28.732,45

@@ -1,0 +1,100 @@
+========================================================================================================================,,,,,,,,
+File Design Information:,,,,,,,,
+,,,,,,,,
+Date:       26/10/20,,,,,,,,
+Time:       10:33,,,,,,,,
+Revision:   Not in VersionControl,,,,,,,,
+Variant:    No variations,,,,,,,,
+Units used: mm,,,,,,,,
+,,,,,,,,
+Designator,Description,Comment,FP,Digikey P/N,Layer,Center-X(mm),Center-Y(mm),Rotation
+R1-23,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,33.4,6.2,360
+C4-4,Capacitor,0.1 uF,0603 (1608 Metric),311-1341-1-ND,TopLayer,40.7,10.6,180
+B1,Buffer,B1,VSSOP-8,296-47829-1-ND,TopLayer,34.15,8.8,360
+R5-2,Resistor,4.99,0603 (1608 Metric),311-4.99HRCT-ND,TopLayer,36.8,22.1,90
+R5-1,Resistor,4.99,0603 (1608 Metric),311-4.99HRCT-ND,TopLayer,8,24.5,180
+R1-14,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,7.7,21.2,90
+C4-2,Capacitor,0.1 uF,0603 (1608 Metric),311-1341-1-ND,TopLayer,40.4,25,90
+R1-6,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,35.3,20.7,90
+TR1-2,Transistor,MOSFET,SOT-23-3,785-1014-1-ND,TopLayer,37.5,25.3,270
+D1-1,Diode,D1,SOD-123,1655-1928-1-ND,TopLayer,42.8,26.35,90
+R1-5,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,10.6,26,270
+Reg2,6V Regulator,6V Regulator,8-SOIC,296-30033-1-ND,TopLayer,20.4,81.7,360
+R1-4,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,17.4,86,270
+R7-1,Resistor,22.1k,0603 (1608 Metric),311-2486-1-ND,TopLayer,15.6,86.6,270
+R6-1,Resistor,152k,0603 (1608 Metric),311-2096-1-ND,TopLayer,14.9,84.3,0
+I1-1,Inductor,3.3uH,Wirewound Inductor,445-4119-1-ND,TopLayer,29.6,79.125,270
+C7-1,"Capacitor C0G,NP0",22pF,0603 (1608 Metric),311-1755-1-ND,TopLayer,14.9,82.4,180
+C6-2,Capacitor,0.01uF,0603 (1608 Metric),445-5662-1-ND,TopLayer,18,77.8,270
+C1-2,Capacitor,1 uF,0603 (1608 Metric),1276-1019-1-ND,TopLayer,16.4,77.8,270
+C4-1,Capacitor,0.1 uF,0603 (1608 Metric),311-1341-1-ND,TopLayer,25.8,81.8,90
+C3-2,Capacitor,22 uF,0805 (2012 Metric),1276-6780-1-ND,TopLayer,25,75.9,90
+C3-1,Capacitor,22 uF,0805 (2012 Metric),1276-6780-1-ND,TopLayer,22.1,75.9,90
+C4-3,Capacitor,0.1 uF,0603 (1608 Metric),311-1341-1-ND,TopLayer,22.7,88.1,270
+C2-2,Capacitor,10 uF,0805 (2012 Metric),587-1295-1-ND,TopLayer,25,87.9,90
+C2-1,Capacitor,10 uF,0805 (2012 Metric),587-1295-1-ND,TopLayer,27.6,87.9,90
+R2-8,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,15.5,5.9,90
+H4,2 Position Connector,Stir,Mini CT 2POS,A98681-ND,TopLayer,46.8,25,90
+R4-7,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,10.7,56.3,270
+R4-6,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,34.8,57.9,90
+R4-5,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,40.3,57.2,360
+R4-4,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,37.4,48.9,360
+R4-3,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,35,43.5,270
+R4-2,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,15.9,49.7,90
+R4-1,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,13.2,43,90
+R1-21,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,9.2,56.3,90
+H3,2 Position Connector,Heat,Mini CT 2POS,A98681-ND,TopLayer,3.2,26.248,270
+C1-1,Capacitor,1 uF,0603 (1608 Metric),1276-1019-1-ND,TopLayer,18,10,270
+C5-1,Capacitor,4.7uF,0603 (1608 Metric),1276-1044-1-ND,TopLayer,20.3,4.7,270
+C6-1,Capacitor,0.01uF,0603 (1608 Metric),445-5662-1-ND,TopLayer,17,3.2,90
+H6,6 Wire,Measurement,Connecting Wire,A100196-ND,TopLayer,46.8,86.15,90
+LED1,LED Visible,LEDEngin,2828 (7070 Metric),1537-1183-1-ND,TopLayer,24.285,48,0
+H2,MicroUSB Connector,Control,MicroUSB Female,WM10134CT-ND,BottomLayer,26.6,4.275,180
+H5,MicroUSB Connector,Pump,MicroUSB Female,WM10134CT-ND,BottomLayer,39.4,4.275,180
+OA1-1,OpAmp,OpAmp 4Way,14-SOIC,AD8534ARZ-REELCT-ND,TopLayer,8.5,48.065,180
+OA1-2,OpAmp,OpAmp 4Way,14-SOIC,AD8534ARZ-REELCT-ND,TopLayer,39.1,74.735,360
+H1,Power Connector,Power (12V 3A),PWR Jack,CP-044AH-ND,BottomLayer,10.65,5.7,180
+TR2-1,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,15.7,36,270
+TR2-2,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,29.7,35.9,270
+TR2-3,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,44.3,36,270
+TR2-4,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,43.2,52.6,360
+TR2-5,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,39.6,63.4,90
+TR2-6,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,25,60.35,90
+TR2-7,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,10.4,63.4,90
+R1-7,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,28.1,20,180
+R1-8,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,28.1,21.467,180
+R1-9,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,28.1,22.933,180
+R1-10,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,28.1,25.4,180
+R1-11,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,28.1,26.867,180
+R1-12,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,28.1,28.333,180
+R1-13,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,28.1,29.8,180
+Reg1,3.3V Regulator,3.3V Regulator,SOT-23-5,296-18476-1-ND,TopLayer,18,6.6,270
+R1-16,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,14.3,49.7,270
+R1-17,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,33.5,43.5,90
+R1-18,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,37.4,50.3,180
+R1-19,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,43.3,57.2,360
+R1-20,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,34.8,60.8,90
+R1-15,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,14.9,43,270
+R3-1,Resistor,1,2512 (6432 Metric),A109718CT-ND,TopLayer,9.9,35.8,270
+R3-2,Resistor,1,2512 (6432 Metric),A109718CT-ND,TopLayer,21.8,35.7,270
+R3-3,Resistor,1,2512 (6432 Metric),A109718CT-ND,TopLayer,37.9,35.8,270
+R3-4,Resistor,1,2512 (6432 Metric),A109718CT-ND,TopLayer,43.2,45.9,360
+R3-5,Resistor,1,2512 (6432 Metric),A109718CT-ND,TopLayer,46.098,63.2,90
+R3-6,Resistor,1,2512 (6432 Metric),A109718CT-ND,TopLayer,31.498,63.2,90
+R3-7,Resistor,1,2512 (6432 Metric),A109718CT-ND,TopLayer,16.898,63.2,90
+LED2,LED UV,LED UV,XR SMD,1807-1023-2-ND,TopLayer,24.9,68.275,360
+TR2-8,Transistor,TransistorPower2,SOT-223,ZXTN25100DGCT-ND,TopLayer,38.6,86.1,90
+R1-22,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,TopLayer,33.9,86.1,90
+R4-8,Resistor,1M,0603 (1608 Metric),RMCF0603FG1M00CT-ND,TopLayer,32.3,87.5,270
+R9-1,Resistor,40.2,0805 (2012 Metric),P16072CT-ND,TopLayer,43.5,82.9,90
+H7,5 Position Connector,Expansion,Mini CT 5POS,A98684-ND,BottomLayer,9,79.25,90
+TR1-1,Transistor,MOSFET,SOT-23-3,785-1014-1-ND,TopLayer,7.6,27.2,0
+R2-9,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,20.9,2.7,360
+R2-1,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,22.2,20,180
+R2-2,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,22.1,21.4,180
+R2-3,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,22.7,23.8,180
+R2-4,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,22.8,25.6,180
+R2-5,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,22.8,26.867,180
+R2-6,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,22.8,28.333,180
+R2-7,Resistor,38.3k,0603 (1608 Metric),311-38.3KHRCT-ND,TopLayer,22.8,29.9,180
+PWM1,PWM,PWM28,28-TSSOP,568-11925-1-ND,TopLayer,15.475,24.725,180

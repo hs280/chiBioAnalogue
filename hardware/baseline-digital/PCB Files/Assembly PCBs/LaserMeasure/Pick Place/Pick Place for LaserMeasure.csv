@@ -1,0 +1,22 @@
+========================================================================================================================,,,,,,,,
+File Design Information:,,,,,,,,
+,,,,,,,,
+Date:       27/11/20,,,,,,,,
+Time:       09:33,,,,,,,,
+Revision:   Not in VersionControl,,,,,,,,
+Variant:    No variations,,,,,,,,
+Units used: mm,,,,,,,,
+,,,,,,,,
+Designator,Description,Comment,FP,Digikey P/N,Layer,Center-X(mm),Center-Y(mm),Rotation
+H1,Side Connector,Interconnect,Mini CT 6POS,A98685-ND,TopLayer,37.4,46,180
+H5,Overflow Connector,OverFlow1,Mini CT 2POS,A98681-ND,TopLayer,40.7,2.9,180
+DAC1,DAC,Dac,SOT-23-6,296-48525-1-ND,BottomLayer,27.3,46.7,90
+R1-1,Resistor,10k,0603 (1608 Metric),311-10.0KHRCT-ND,BottomLayer,9.1,40.5,90
+H4,IR Thermometer Breakout,IRSensor,,,BottomLayer,40.7,24.9,90
+C1-1,Capacitor,1uF,0603 (1608 Metric),1276-1019-1-ND,BottomLayer,11.2,40.5,270
+C2-1,Capacitor,4.7uF,0603 (1608 Metric),1276-1044-1-ND,BottomLayer,12.5,45.8,0
+C3-1,Capacitor,0.01uF,0603 (1608 Metric),445-5662-1-ND,BottomLayer,9,47.5,180
+H2,Laser Beakout,LaserBreakout,,,TopLayer,20.4,44.8,180
+H3,Spectrometer Breakout,SensorBreakoutAS7341,,,TopLayer,20.4,2.9,180
+Reg1,5V Regulator,5V Regulator,SOT-23-5,LP2985IM5X-5.0/NOPBCT-ND,BottomLayer,9.275,44.6,90
+T1,Thermometer,TempSense,8-MSOP,MCP9808T-E/MSCT-ND,TopLayer,10.975,45.1,270

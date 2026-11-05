@@ -1,0 +1,19 @@
+========================================================================================================================,,,,,,,,
+File Design Information:,,,,,,,,
+,,,,,,,,
+Date:       10/07/19,,,,,,,,
+Time:       17:47,,,,,,,,
+Revision:   Not in VersionControl,,,,,,,,
+Variant:    No variations,,,,,,,,
+Units used: mm,,,,,,,,
+,,,,,,,,
+Designator,Description,Comment,FP,Digikey P/N,Layer,Center-X(mm),Center-Y(mm),Rotation
+R4-1,Resistor,2M,0603 (1608 Metric),311-2.00MHRCT-ND,BottomLayer,1.2,8.8,360
+R1-1,Resistor,10K,0603 (1608 Metric),311-10.0KHRCT-ND,BottomLayer,-1.6,2.2,360
+L1,ADL65052TL,LaserLEDCombo,TO-18,,TopLayer,0.5,5.8,270
+R3-1,Resistor,20K,0603 (1608 Metric),311-20.0KHRCT-ND,BottomLayer,-5.1,3.6,360
+R2-1,Resistor,51,0603 (1608 Metric),RHM51.0ADCT-ND,BottomLayer,5.7,2.1,90
+TR1,Transistor,TransistorPower,SOT-23-3,MMBT4401LT1GOSCT-ND,BottomLayer,4.7,5.8,360
+C1,Capacitor,1nf,0603 (1608 Metric),478-1215-1-ND,BottomLayer,-5.5,8.9,90
+H1,Header Pins,LightConnect,3-Header Pins,732-5338-ND,BottomLayer,0,0,180
+OA1,OpAmp,Op Amp - Precision,SOT-23-5,296-45326-1-ND,BottomLayer,-2.9,7.6,270

@@ -1,0 +1,8 @@
+Action,Description,Comment,Designator,Qty,Part number,Status
+ADD,Octal 12-bit I2C DAC,DAC7578 TSSOP-16,DAC2 DAC3,2,DAC7578 (TI),VERIFY part + Digikey number
+ADD,Capacitor 0.1uF 0603,DAC decoupling,C8-1 C8-2,2,311-1341-1-ND,Same part as existing 0.1uF
+ADD,Capacitor 100nF 0603,Divider-node filter per LED channel,C9-1..C9-10,10,311-1341-1-ND,Only if original board lacks it - VERIFY
+ADD,Resistor (address strap),DAC ADD0 strapping,R10-1 R10-2,2,311-10.0KHRCT-ND,Depends on chosen addresses - VERIFY
+REPLACE,Resistor 40.2R 0805,UV stage current set,R9-1,1,P16072CT-ND,Replace with sense resistor sized from UV LED rated current - NOT FOUND in files
+REWIRE,PCA9685 LED outputs,Move LEDA..LEDI and UV nets to DAC outputs,PWM1,0,568-11925-1-ND,PWM1 stays for Stir and Heat
+KEEP,All other Side board parts,Unchanged,-,-,-,-

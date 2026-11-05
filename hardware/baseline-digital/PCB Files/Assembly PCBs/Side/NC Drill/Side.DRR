@@ -1,0 +1,20 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: Side.PcbDoc   26/10/2020  10:33:02
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : Side-RoundHoles.TXT
+ASCII SlotHoles File : Side-SlotHoles.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      16mil (0.4mm)                                             Round             251       PTH        43.47inch (1104.08mm)
+T2      20mil (0.5mm)                                             Round             37        PTH        13.72inch (348.51mm)
+T3      20mil (0.5mm)                                             Slot              6         PTH        2.02inch (51.35mm)
+T4      24mil (0.6mm)                                             Slot              3         PTH        1.19inch (30.16mm)
+T5      37mil (0.95mm)                                            Round             18        PTH        6.68inch (169.72mm)
+T6      118mil (3mm)                                              Round             4         PTH        7.04inch (178.70mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              319
+
+Total Processing Time (hh:mm:ss) : 00:00:00

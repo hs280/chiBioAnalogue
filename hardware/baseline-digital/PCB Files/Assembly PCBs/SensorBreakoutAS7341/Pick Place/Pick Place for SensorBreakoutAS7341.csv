@@ -1,0 +1,16 @@
+========================================================================================================================,,,,,,,,
+File Design Information:,,,,,,,,
+,,,,,,,,
+Date:       16/09/19,,,,,,,,
+Time:       16:58,,,,,,,,
+Revision:   Not in VersionControl,,,,,,,,
+Variant:    No variations,,,,,,,,
+Units used: mm,,,,,,,,
+,,,,,,,,
+Designator,Description,Comment,FP,Digikey P/N,Layer,Center-X(mm),Center-Y(mm),Rotation
+H1,Header Pins,ColourConnect2,4-Header Pins,732-5337-ND,BottomLayer,3.81,0,360
+AS7341,Spectrometer,AS7341,8-TFLGA,AS7341-DLGMCT-ND,TopLayer,3.81,5.441,360
+C1-1,Capacitor,1uF,0603 (1608 Metric),1276-1019-1-ND,BottomLayer,3.91,3.4,360
+C2-1,Capacitor,4.7uF,0603 (1608 Metric),1276-1044-1-ND,BottomLayer,3.91,6.2,360
+C3-1,Capacitor,0.01uF,0603 (1608 Metric),445-5662-1-ND,BottomLayer,3.91,4.8,180
+Reg1,1.8V Regulator,1.8V Regulator,SOT-23-5,LP2985AIM5-1.8/NOPBCT-ND,BottomLayer,0.51,4.8,90
