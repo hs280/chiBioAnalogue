@@ -2,115 +2,126 @@
 
 Goal: keep the Chi.Bio reactor, but set every LED's brightness with a steady DC current from a constant current regulator (CCR), not by switching it on and off with PWM.
 
-## Status: what is done and what is not
+## Status
 
 | Item | State |
 |---|---|
-| Firmware (`software/app.py`) | Done. Unit-tested against stubbed I2C (`tests/test_led_dac.py`). Not run on real hardware. |
-| Design spec, I2C map, BOM changes (this folder) | Done. Written from the BOM, pick-and-place, Gerbers and firmware. |
-| Side board schematic and layout | **Not done.** The zip holds Gerbers, not Altium sources, so the new board cannot be generated here. Section 4 lists the exact edits for whoever opens the original project. |
-| Values marked **VERIFY** | Inferred from BOM and firmware. Check against the original schematic before ordering boards. |
+| Side board schematic and layout | **Source received** (`hardware/source-altium/`). Schematic netlist extracted and cross-checked against the PCB: all 69 multi-pin nets match. |
+| Firmware (`software/app.py`) | Done, matched to the real schematic. Tested against stubbed I2C only (`tests/test_led_dac.py`). Not run on hardware. |
+| Modified Side board | **Not done.** Section 4 lists the edits. Nothing has been routed or fabricated. |
+| Items marked **VERIFY** | Need a datasheet or a bench measurement. |
+
+An earlier version of this document guessed the circuit from the BOM. The real schematic changed three things: one DAC is enough, the UV stage is already a CCR, and the CCR has a built-in dead zone. This version replaces it.
 
 ## 1. What changes and what does not
 
-**Unchanged:** pump board, BeagleBone cape, heater, IR sensor, laser board and its DAC, AS7341 spectrometer board, all structural boards, the stir/heat PWM channels, and the web UI.
+**Unchanged:** every other board (pump, BeagleBone cape, heater, IR sensor, laser board and its DAC, spectrometer, structural boards), the stir and heat PWM channels, and the web UI.
 
-**Changed:** only the Side board LED path (LED1 visible array, LED2/UV) and the firmware that talks to it.
+**Changed:** the Side board LED inputs, and the firmware that drives them.
 
 | | Original (digital) | Analogue variant |
 |---|---|---|
-| LED set-point | PCA9685 PWM at 1526 Hz, 12 bit | DC voltage from an I2C DAC, 12 bit |
+| LED set-point | PCA9685 PWM at 1526 Hz | DC voltage from an I2C DAC |
 | LED current | Chopped between 0 and full current | Steady, regulated by the CCR |
-| Brightness control | Duty cycle | Current amplitude |
 | Spectrometer vs LED | Integration window can alias with PWM | No flicker |
-| Audible ringing on the 6 V rail | Possible (firmware comment) | Gone for LEDs |
 
-## 2. Why the existing Side board is close to a CCR already
+## 2. The existing LED circuit (from the schematic)
 
-From the Side BOM and pick-and-place:
-
-- A quad op-amp (AD8534, two of them), one SOT-223 NPN (ZXTN25100DG) per channel, and a 1 ohm 2512 sense resistor per channel (7 of them).
-- Divider resistors 38.3k and 10k (9 and 20 of them).
-
-That is the usual op-amp, transistor, sense-resistor current regulator. In the digital board its reference input is the PWM output through a 38.3k/10k divider. **VERIFY** this against the schematic.
-
-If so, the full-scale current is set by the divider and the sense resistor:
+Every LED channel is already a closed-loop current regulator. Set-point voltage comes from a PCA9685 output through a divider into an op-amp.
 
 ```
-V_ref(full scale) = V_DAC,max x 10k / (10k + 38.3k) = 3.3 V x 0.207 = 0.683 V
-I_LED,max         = V_ref / R_sense                 = 0.683 V / 1 ohm = 0.68 A
+PCA9685 out --[R2 38.3k]--+--[R1 10k]-- GND
+                          |
+                          +--> op-amp (+)        op-amp out --> NPN base (ZXTN25100DG)
+ 6 V -----[R4 1M]---+--> op-amp (-)              6 V -> LED -> NPN collector
+ NPN emitter --[R1 10k]--+                       NPN emitter --[R3 1 ohm]--> GND
 ```
 
-So a DAC with a 3.3 V full-scale output, wired where the PCA9685 output was, reproduces the original maximum current with no other resistor changes. Per channel: `I_LED = (code / 4095) x I_LED,max`.
+Op-amps are two AD8534 quads (OA1-1, OA1-2). Channel map, taken from the netlist and confirmed against the firmware's PCA9685 register addresses:
 
-## 3. New circuit per LED channel
+| Firmware name | Colour | PCA9685 pin (output) | Op-amp, out / + / - pins | Transistor | Sense R | LED pin |
+|---|---|---|---|---|---|---|
+| LEDC | Cyan | 7 (LED1) | OA1-1: 1 / 3 / 2 | TR2-1 | R3-1, 1 ohm | LED1.11 |
+| LEDH | Yellow | 15 (LED8) | OA1-1: 7 / 5 / 6 | TR2-2 | R3-2, 1 ohm | LED1.15 |
+| LEDI | Lime 2 | 17 (LED10) | OA1-1: 8 / 10 / 9 | TR2-3 | R3-3, 1 ohm | LED1.17 |
+| LEDJ | Lime 1 | 19 (LED12) | OA1-1: 14 / 12 / 13 | TR2-4 | R3-4, 1 ohm | LED1.20 |
+| LEDD | Green | 11 (LED5) | OA1-2: 1 / 3 / 2 | TR2-5 | R3-5, 1 ohm | LED1.21 |
+| LEDB | Blue | 10 (LED4) | OA1-2: 7 / 5 / 6 | TR2-6 | R3-6, 1 ohm | LED1.23 |
+| LEDF | Red | 12 (LED6) | OA1-2: 8 / 10 / 9 | TR2-7 | R3-7, 1 ohm | LED1.24 |
+| UV | UV | 22 (LED15) | OA1-2: 14 / 12 / 13 | TR2-8 | R9, 40.2 ohm | LED2.1 |
+
+Other PCA9685 outputs: pin 6 (LED0) is stir, pin 21 (LED14) is heat. Pins 8, 9, 13, 16, 18 and 20 (LEDA, LEDG, LEDE and three spare) are unconnected on this board. This is the LED version 2 board. LEDA, LEDE and LEDG exist only in the firmware.
+
+Findings that matter for the redesign:
+
+- **The UV stage is already a CCR.** I earlier thought it was resistor-limited. It has the same op-amp loop with a 40.2 ohm sense resistor and a 12 V supply. Its set-point goes straight to the op-amp (with a 10k pull-down), not through a divider.
+- **Full-scale current.** LEDs: 3.3 V x 10k/48.3k = 0.683 V set-point, about 0.63 A. UV: 3.3 V set-point, about 80 mA. A 3.3 V DAC reproduces both with no resistor changes. At 100 percent PWM duty the original board already ran these currents continuously, so 100 percent analogue is no new worst case.
+- **Built-in dead zone.** R4 (1M from the supply) and R1 (10k to the sense node) hold the op-amp's inverting input above the sense node by 6 V x 10k/1.01M = 59 mV (LEDs) or 119 mV (UV). The set-point must exceed that before current flows. This gives a true zero when off, and it absorbs op-amp input offset. It also means the lowest 8.7 percent (LEDs) or 3.6 percent (UV) of DAC range does nothing. The firmware adds it back so intensity maps linearly onto current.
+- **No existing filter.** There are no capacitors on the set-point nodes.
+
+## 3. The change
+
+Replace the 8 PCA9685 outputs above with the 8 channels of one octal DAC. This is why one chip is enough.
 
 ```
- 3V3 -> DAC7578 (VOUTn) --[38.3k]--+--[10k]-- GND          (existing divider, re-fed from DAC)
-                                   |
-                                   +--> op-amp (+)   op-amp out --[Rb]--> NPN base
-                                                      op-amp (-) <-- emitter node
- 6 V rail -> LED -> NPN collector;  NPN emitter -> R_sense (1 ohm) -> GND
+3V3 --> DAC7578 (U?) --VOUT0..7--> the 7 divider inputs (R2-x pin 2) and the UV op-amp input (OA1-2 pin 12 / R1-14)
+SDA, SCL: existing nets.   Decoupling: 100 nF + 1 uF.
 ```
 
-Add per channel: 100 nF from the divider node to ground (DAC glitch and noise filter), unless the board already has one. **VERIFY** whether the original has it.
+| DAC channel | Output | Net | Replaces |
+|---|---|---|---|
+| 0 | LEDB, Blue | Blue0 | PWM1.10 |
+| 1 | LEDC, Cyan | Cyan0 | PWM1.7 |
+| 2 | LEDD, Green | Green0 | PWM1.11 |
+| 3 | LEDF, Red | Red0 | PWM1.12 |
+| 4 | LEDH, Yellow | Yellow0 | PWM1.15 |
+| 5 | LEDI, Lime 2 | Lime20 | PWM1.17 |
+| 6 | LEDJ, Lime 1 | Lime10 | PWM1.19 |
+| 7 | UV | net on PWM1.22 | PWM1.22 |
 
-### DAC choice
+The channel order is a free choice and can follow whatever routes best. If you change it, edit `LED_DAC_MAP` in `software/app.py`.
 
-Two octal 12-bit I2C DACs, TI **DAC7578** (TSSOP-16), 3.3 V supply, output 0 to VDD. **VERIFY** the part before ordering.
+DAC choice: TI **DAC7578** (octal, 12 bit, I2C, 2.7 to 5.5 V, TSSOP-16). The TSSOP package powers up at zero scale, so LEDs are off at power-on. **VERIFY** before ordering:
 
-- Channels needed: LEDA to LEDG (7 CCRs) plus UV, plus LEDH and LEDI that the firmware supports for LED version 2. That is 10, so two chips.
-- The DAC powers up at zero scale, so LEDs are off at power-on.
-- 0x48 is already the laser DAC on each device's I2C branch. The LED DACs must not use it. Firmware defaults are 0x4A and 0x4C. **VERIFY** the strapping needed to get those addresses.
+- The I2C address table for the ADDR0 and ADDR1 pins. The firmware default is 0x4A. It must not be 0x48 (laser DAC), 0x60 (PCA9685), 0x39 or the thermometer addresses.
+- That output full scale equals the 3.3 V supply (not an internal reference).
 
-### I2C map per reactor (behind its own mux channel)
+## 4. Edits to the Side board
 
-| Address | Device | Status |
-|---|---|---|
-| 0x18 / 0x1B | Thermometers | unchanged |
-| 0x39 | AS7341 | unchanged |
-| 0x48 | Laser DAC | unchanged |
-| 0x4A | LED DAC 0 (LEDA..LEDH, channels 0 to 7) | **new** |
-| 0x4C | LED DAC 1 (LEDI channel 0, UV channel 1) | **new** |
-| 0x5A | IR thermometer | unchanged |
-| 0x60 | PWM chip (stir, heat; LEDs when in PWM mode) | unchanged |
-| 0x61 | Pump PWM chip | unchanged |
+1. Add the DAC and its decoupling on the 3.3 V rail, with ADDR strapping, on the existing SDA and SCL nets.
+2. For each row in the table, cut the net from the PCA9685 pin and connect it to the DAC output.
+3. Leave the PCA9685 in place for stir and heat. Its freed pins stay unconnected.
+4. Regenerate Gerbers, BOM and pick-and-place.
 
-### UV channel
+Altium sources are in `hardware/source-altium/`. A KiCad import of the board is `Side.imported-from-altium.kicad_pcb` (92 footprints, 70 nets, 51.45 x 115.05 mm outline). Pad and net names are preserved. Footprints are Altium-derived and the copper pour and silkscreen should be checked after any edit. BOM delta: `hardware/analogue-changes/side_board_bom_delta.csv`.
 
-On the digital board the UV LED uses a power transistor with a fixed 40.2 ohm resistor (R9), not a 1 ohm sense resistor. To make it a true CCR, replace R9 with a sense resistor sized `R = V_ref,max / I_UV,max` and give it the same op-amp stage. **I did not find the UV LED's rated current in the files**, so pick it from the LED datasheet.
+## 5. Trade-offs
 
-## 4. Edits for the Side board project (Altium)
-
-1. Add two DAC7578 on the 3.3 V I2C branch (SDA/SCL already present for the PCA9685) with decoupling and the address strapping.
-2. For each LED channel net, cut it from the PCA9685 output and connect it to the matching DAC output (map in `software/app.py`, `LED_DAC_MAP`).
-3. Add the 100 nF filter at each divider node if absent.
-4. Convert the UV stage as described above.
-5. Keep the PCA9685 for Stir and Heat. Its unused LED outputs stay unconnected.
-6. Regenerate Gerbers, BOM and pick-and-place. The part-level BOM delta is in `hardware/analogue-changes/side_board_bom_delta.csv`.
-
-## 5. Known trade-offs of analogue dimming
-
-- **True off.** PWM gave exact zero. A CCR leaves a small current if the op-amp has input offset. With a 1 ohm sense resistor, every 1 mV of offset is about 1 mA. Check the AD8534 offset in its datasheet. The firmware always writes exactly zero when a channel is off, and `LED_DAC_OFFSET_CODES` can compensate while on. If measured leakage matters for fluorescence, add a pull-down on each divider node driven from a spare PCA9685 output.
-- **Wavelength shift.** LED peak wavelength drifts with current. At low dimming levels the colour differs from a PWM-dimmed LED at the same average power. Recalibrate OD and fluorescence factors (`OD0` and the `FP` settings) after switching.
-- **Low-level resolution.** 12 bits over 0.68 A is about 0.17 mA per step, same as the original PWM resolution.
-- **Dissipation.** The pass transistor now burns `(V_rail - V_LED - V_sense) x I` continuously instead of in pulses. At full current this is heat inside the reactor. Check against the thermostat and the SOT-223 thermal limit before running all channels at once.
-- **Existing calibrations.** Intensity numbers saved in old experiments are PWM duty. In this variant they are current fraction. Treat them as different instruments.
+- **Wavelength shift.** LED peak wavelength drifts with current, so a dimmed LED has a different colour than a PWM-dimmed one at the same average power. Recalibrate OD (`OD0`) and fluorescence settings after switching.
+- **Dissipation.** The pass transistor burns power continuously at partial brightness. At 100 percent it is the same as the original. Check the SOT-223 thermal margin with several channels at mid-level.
+- **Dead-zone accuracy.** The 59 mV and 119 mV thresholds depend on the 1M and 10k resistor tolerances (0.1 percent parts reduce the error). Measure each channel and adjust `LED_DAC_DEADBAND`.
+- **Old intensity numbers.** Saved intensities were PWM duty. Here they are current fraction. Treat them as a different instrument.
 
 ## 6. Firmware
 
-Everything is in `software/app.py`; `software/analogue-led.patch` is the diff against upstream Chi.Bio.
+All in `software/app.py`. `software/analogue-led.patch` is the diff against upstream Chi.Bio.
 
-- `LED_DRIVE_MODE = 'ANALOGUE'` selects DAC drive. `'PWM'` restores the original behaviour for digital boards.
-- `LED_DAC_MAP` maps each output to a DAC chip and channel.
-- `LED_DAC_FULLSCALE` clamps a channel's maximum, for example to protect an LED after you measure its current.
-- `LED_DAC_OFFSET_CODES` adds a per-channel offset while on.
-- `setLED()` replaces the old LED/UV PWM calls. `LEDV` (the virtual white mixing LEDB and LEDI) works unchanged.
-- `turnEverythingOff()` also zeroes all LED DAC channels.
+- `LED_DRIVE_MODE` is `'ANALOGUE'` (DAC) or `'PWM'` (original boards).
+- `LED_DAC_MAP`, `LED_DAC_DEADBAND`, `LED_DAC_FULLSCALE` set the channel map, the dead-zone correction and a per-channel clamp.
+- `setLED()` replaces the LED and UV PWM calls. Unfitted LEDs (LEDA, LEDE, LEDG) are ignored. LEDV, the virtual white, works unchanged.
+- `turnEverythingOff()` zeroes every DAC channel.
 
-Bring-up order:
+Bring-up:
 
-1. Power the Side board with LEDs unplugged. Confirm DAC addresses with `i2cdetect` through the mux channel.
-2. Set `LED_DAC_FULLSCALE` low (for example 0.1) for all channels.
-3. Measure the sense-resistor voltage at 10, 50 and 100 percent for each channel. Expect `V = (code/4095) x 0.683 V`.
-4. Raise the clamp to the LED's rated current only after step 3 matches.
+1. Power the board with LEDs unplugged. Find the DAC with `i2cdetect` through the mux channel.
+2. Set `LED_DAC_FULLSCALE` to about 0.1 for all channels.
+3. Measure the sense-resistor voltage at 10, 50 and 100 percent. Expect about 0.63 V at 100 percent for the LEDs, and 3.2 V across R9 for UV.
+4. Raise the clamp only after step 3 matches, and never above the LED's rated current.
+
+## 7. Reproducing the netlist
+
+```
+python3 -I tools/altium_sch_netlist.py tools/altium_sch_parse.py hardware/source-altium/Side.SchDoc far netlist.json
+```
+
+`docs/side_board_netlist.csv` is the full extracted netlist.

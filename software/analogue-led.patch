@@ -1,5 +1,5 @@
 --- /tmp/claude-0/-home-user-chiBioAnalogue/556b877d-fa11-5013-8558-68bf8dac6935/scratchpad/app_orig.py	2026-11-05 08:02:50.432437596 +0000
-+++ software/app.py	2026-11-05 08:03:11.448850648 +0000
++++ software/app.py	2026-11-09 10:03:36.668031371 +0000
 @@ -1,4 +1,8 @@
 -######### Chi.Bio Operating System V1.0 #########
 +######### Chi.Bio Operating System V1.0 - ANALOGUE LED (CCR) VARIANT #########
@@ -10,32 +10,37 @@
  
  #Import required python packages
  import os
-@@ -110,6 +114,24 @@
+@@ -110,6 +114,29 @@
          sysDevices[M]=copy.deepcopy(sysDevices['M0'])
          
  
 +# ---- Analogue LED driver configuration ----------------------------------------------------
 +LED_DRIVE_MODE = 'ANALOGUE'   # 'ANALOGUE' = DAC-set CCR current (this variant); 'PWM' = original digital LED boards.
-+LED_DAC_BITS = 12             # Resolution of the LED DACs (DAC7578 = 12 bit).
-+# I2C addresses of the two octal LED DACs on the Side board (seen through each device's own mux channel).
-+# 0x48 is taken by the laser DAC, so these must differ from it. CONFIRM against the DAC datasheet / ADD0 strapping.
-+LED_DAC_ADDRESSES = {'LEDDAC0' : 0x4A, 'LEDDAC1' : 0x4C}
-+# Output name -> (DAC chip, DAC channel 0-7). Channel numbering follows the Side board netlist.
++LED_DAC_BITS = 12             # Resolution of the LED DAC (DAC7578 = 12 bit).
++# I2C address of the octal LED DAC on the Side board (seen through each device's own mux channel).
++# 0x48 is taken by the laser DAC, so this must differ from it. CONFIRM against the DAC datasheet / ADDR0, ADDR1 strapping.
++LED_DAC_ADDRESSES = {'LEDDAC0' : 0x4A}
++# Output name -> (DAC chip, DAC channel 0-7). This is the set of LEDs actually fitted on the Side board (LED version 2):
++# Blue, Cyan, Green, Red, Amber/Yellow, Lime (x2) and the UV LED. LEDA, LEDE and LEDG do not exist on this board; setLED() ignores them.
++# LEDJ is the second lime LED. Upstream software never drives it, so it is only ever written to zero.
 +LED_DAC_MAP = {
-+    'LEDA' : ('LEDDAC0', 0), 'LEDB' : ('LEDDAC0', 1), 'LEDC' : ('LEDDAC0', 2), 'LEDD' : ('LEDDAC0', 3),
-+    'LEDE' : ('LEDDAC0', 4), 'LEDF' : ('LEDDAC0', 5), 'LEDG' : ('LEDDAC0', 6), 'LEDH' : ('LEDDAC0', 7),
-+    'LEDI' : ('LEDDAC1', 0), 'UV'   : ('LEDDAC1', 1),
++    'LEDB' : ('LEDDAC0', 0), 'LEDC' : ('LEDDAC0', 1), 'LEDD' : ('LEDDAC0', 2), 'LEDF' : ('LEDDAC0', 3),
++    'LEDH' : ('LEDDAC0', 4), 'LEDI' : ('LEDDAC0', 5), 'LEDJ' : ('LEDDAC0', 6), 'UV'   : ('LEDDAC0', 7),
 +}
-+# Highest DAC fraction allowed per output (0-1). Lets you clamp a channel to its safe LED current without touching
++# Each CCR stage deliberately biases its op-amp inverting input about 60 mV above the sense node (1M from the supply rail,
++# 10k from the sense resistor) so that zero set-point is a true off. The cost is a dead zone: the DAC must exceed this
++# fraction of full scale before any current flows. setLED() adds it back so that intensity 0-1 maps linearly onto 0-100% current.
++# Calculated from the schematic: 6 V x 10k/1.01M = 59 mV of 683 mV full scale for the LEDs; 12 V x 10k/1.01M = 119 mV of 3.3 V for UV. MEASURE and adjust per channel.
++LED_DAC_DEADBAND = {'LEDB' : 0.087, 'LEDC' : 0.087, 'LEDD' : 0.087, 'LEDF' : 0.087,
++                    'LEDH' : 0.087, 'LEDI' : 0.087, 'LEDJ' : 0.087, 'UV' : 0.036}
++# Highest DAC fraction allowed per output (0-1). Lets you clamp a channel to a safe LED current without touching
 +# the user-facing 0-1 intensity scale. Set after measuring each channel's current at full scale.
 +LED_DAC_FULLSCALE = {name : 1.0 for name in LED_DAC_MAP}
-+# Optional per-channel offset in DAC codes added whenever a channel is ON (compensates op-amp offset / dead-band).
-+LED_DAC_OFFSET_CODES = {name : 0 for name in LED_DAC_MAP}
 +
  #sysItems stores information about digital addresses which is used as a reference for all devices.        
  sysItems = {
      'Multiplexer' : {'device' : 0 , 'M0' : '00000001','M1' : '00000010','M2' : '00000100','M3' : '00001000','M4' : '00010000','M5' : '00100000','M6' : '01000000','M7' : '10000000'},
-@@ -359,6 +381,8 @@
+@@ -359,6 +386,8 @@
      sysDevices[M]['Pumps']['device']=I2C.get_i2c_device(0x61,2) #Get OD Chip on Bus 2!!!!!
      sysDevices[M]['Pumps']['startup']=0
      sysDevices[M]['Pumps']['frequency']=0x1e #200Hz PWM frequency
@@ -44,7 +49,7 @@
      sysDevices[M]['PWM']['device']=I2C.get_i2c_device(0x60,2) #Get OD Chip on Bus 2!!!!!
      sysDevices[M]['PWM']['startup']=0
      sysDevices[M]['PWM']['frequency']=0x03# 0x14 = 300hz, 0x03 is 1526 Hz PWM frequency for fan/LEDs, maximum possible. Potentially dial this down if you are getting audible ringing in the device! 
-@@ -462,6 +486,7 @@
+@@ -462,6 +491,7 @@
      sysData[M]['UV']['ON']=0
      
      I2CCom(M,'DAC',0,8,int('00000000',2),int('00000000',2),0)#Sets all DAC Channels to zero!!! 
@@ -52,7 +57,7 @@
      setPWM(M,'PWM',sysItems['All'],0,0)
      setPWM(M,'Pumps',sysItems['All'],0,0)
      
-@@ -688,7 +713,7 @@
+@@ -688,7 +718,7 @@
      elif(item=='Heat'):
          setPWM(M,'PWM',sysItems[item],sysData[M][item]['target']*float(sysData[M][item]['ON']),0)
      elif(item=='UV'):
@@ -61,7 +66,7 @@
      elif (item=='Thermostat'):
          sysDevices[M][item]['thread']=Thread(target = Thermostat, args=(M,item))
          sysDevices[M][item]['thread'].setDaemon(True)
-@@ -710,7 +735,7 @@
+@@ -710,7 +740,7 @@
          sysData[M]['Zigzag']['SwitchPoint']=sysData[M]['Experiment']['cycles']
      
      elif (item=='LEDA' or item=='LEDC' or item=='LEDD' or item=='LEDE' or item=='LEDF' or item=='LEDG' or item == 'LEDH'): 
@@ -70,7 +75,7 @@
      elif (item=='LEDB' or item == 'LEDI'): #We must handle these differently in case they are simultaneously being used to mix with LEDV
          if (sysData[M]['LEDV']['target']*float(sysData[M]['LEDV']['ON'])>0): #If LEDV is on, we need to make up the difference in these other LEDs.
              # First determine what is the intensity for this LED required to maintain current LEDV level. Note we have alreayd checked that LEDV is on.
-@@ -723,10 +748,10 @@
+@@ -723,10 +753,10 @@
              if (NewIntensity>1.0):
                  NewIntensity=1.0
                  
@@ -83,7 +88,7 @@
      elif (item=='LEDV'): #This is the virtual white LED which is made by combinng LEDB and LEDI
          LEDB_Intensity = sysData[M]['LEDV']['target']*float(sysData[M]['LEDV']['ON'])*sysData[M]['LEDV']['ScaleFactor'] #This is the intensity of the blue we want mixed into our white light
          LEDB_Intensity = LEDB_Intensity + sysData[M]['LEDB']['target']*float(sysData[M]['LEDB']['ON']) #This adds the intensity of the blue we already have on
-@@ -739,8 +764,8 @@
+@@ -739,8 +769,8 @@
          if (LEDI_Intensity>1.0):
              LEDI_Intensity=1.0
  
@@ -94,7 +99,7 @@
          
      elif(item == 'LASER650'): #This is if we are setting the Laser
          
-@@ -1419,6 +1444,8 @@
+@@ -1419,6 +1449,8 @@
      data1=int(data1) #First data/register 
      if hl<20:
          data2=int(data2) #First data/register 
@@ -103,7 +108,7 @@
      global sysItems
      global sysData
      
-@@ -1494,6 +1521,9 @@
+@@ -1494,6 +1526,9 @@
                      elif(hl==16):
                          sysDevices[M][device]['device'].write16(data1,data2)
                          out=1
@@ -113,7 +118,7 @@
                      
              elif SMBUSFLAG==1:
                  out=sysDevices[M][device]['device'].read_word_data(sysDevices[M][device]['address'],data1)
-@@ -1754,6 +1784,40 @@
+@@ -1754,6 +1789,43 @@
  
  
      
@@ -126,12 +131,15 @@
 +    if LED_DRIVE_MODE=='PWM':
 +        setPWM(M,'PWM',sysItems[item],fraction,0)
 +        return
++    if item not in LED_DAC_MAP:
++        return #This LED is not fitted on the analogue Side board.
 +    dacName,channel=LED_DAC_MAP[item]
 +    maxCode=(1<<LED_DAC_BITS)-1
 +    if fraction<=0.0:
-+        code=0 #Off is always exactly zero-scale; the offset below only applies while ON.
++        code=0 #Off is always exactly zero-scale.
 +    else:
-+        code=int(fraction*LED_DAC_FULLSCALE[item]*maxCode+0.5)+LED_DAC_OFFSET_CODES[item]
++        dead=LED_DAC_DEADBAND[item]
++        code=int(round((dead+fraction*(1.0-dead))*LED_DAC_FULLSCALE[item]*maxCode)) #Linear in current above the dead zone.
 +        code=min(max(code,0),maxCode)
 +    writeLEDDAC(M,dacName,channel,code)
 +

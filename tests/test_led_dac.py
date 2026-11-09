@@ -50,37 +50,51 @@ def check(label, got, want):
     fails += not ok
     print(('PASS ' if ok else 'FAIL ') + label + ('' if ok else f'  got={got} want={want}'))
 
-# full scale on LEDA -> chip 0x4A, cmd 0x30|0, code 4095 left-justified = 0xFFF0
-app.sysData[M]['LEDA']['target'] = 1.0; app.SetOutputOn(M, 'LEDA', 1)
-check('LEDA 100%', dac_writes(), [(0x4A, 0x30, [0xFF, 0xF0])])
-# half scale LEDG -> chip 0x4A, channel 6
-app.sysData[M]['LEDG']['target'] = 0.5; app.SetOutputOn(M, 'LEDG', 1)
-check('LEDG 50%', dac_writes(), [(0x4A, 0x36, [0x80, 0x00])])
-# off -> exact zero
-app.SetOutputOn(M, 'LEDG', 0)
-check('LEDG off', dac_writes(), [(0x4A, 0x36, [0x00, 0x00])])
-# LEDI lives on second chip, channel 0
-app.sysData[M]['LEDI']['target'] = 0.25; app.SetOutputOn(M, 'LEDI', 1)
-check('LEDI 25%', dac_writes(), [(0x4C, 0x30, [0x40, 0x00])])
-# UV on second chip, channel 1
-app.sysData[M]['UV']['target'] = 1.0; app.SetOutputOn(M, 'UV', 1)
-check('UV 100%', dac_writes(), [(0x4C, 0x31, [0xFF, 0xF0])])
+DAC = 0x4A
+def expect(frac, dead, fs=1.0):
+    """Independent restatement of the intended mapping: linear current above the dead zone, left-justified 12 bit."""
+    code = min(4095, round((dead + frac * (1 - dead)) * fs * 4095))
+    s = code << 4
+    return [(s >> 8) & 0xFF, s & 0xFF]
+
+# 100% on LEDB (DAC channel 0): full scale, code 4095 left-justified = 0xFFF0
+app.sysData[M]['LEDB']['target'] = 1.0; app.SetOutputOn(M, 'LEDB', 1)
+check('LEDB 100%', dac_writes(), [(DAC, 0x30, [0xFF, 0xF0])])
+# 50% on LEDF (channel 3), dead zone added back
+app.sysData[M]['LEDF']['target'] = 0.5; app.SetOutputOn(M, 'LEDF', 1)
+check('LEDF 50% includes dead-zone offset', dac_writes(), [(DAC, 0x33, expect(0.5, 0.087))])
+# off is exactly zero
+app.SetOutputOn(M, 'LEDF', 0)
+check('LEDF off is zero', dac_writes(), [(DAC, 0x33, [0, 0])])
+# LEDI (channel 5) at 10%
+app.sysData[M]['LEDI']['target'] = 0.1; app.SetOutputOn(M, 'LEDI', 1)
+check('LEDI 10%', dac_writes(), [(DAC, 0x35, expect(0.1, 0.087))])
+# UV (channel 7) has its own dead zone
+app.sysData[M]['UV']['target'] = 0.5; app.SetOutputOn(M, 'UV', 1)
+check('UV 50%', dac_writes(), [(DAC, 0x37, expect(0.5, 0.036))])
+# LEDs that are not fitted on this board are ignored, not written
+for name in ('LEDA', 'LEDE', 'LEDG'):
+    app.sysData[M][name]['target'] = 1.0; app.SetOutputOn(M, name, 1)
+check('unfitted LEDA/LEDE/LEDG write nothing', dac_writes(), [])
 # LEDV mixes LEDB (x ScaleFactor) and LEDI
 app.sysData[M]['LEDV']['target'] = 0.5; app.SetOutputOn(M, 'LEDV', 1)
 sf = app.sysData[M]['LEDV']['ScaleFactor']
 w = dac_writes()
-check('LEDV writes LEDB then LEDI', [(a, c) for a, c, _ in w], [(0x4A, 0x31), (0x4C, 0x30)])
-# clamp / full-scale limit / offset
+check('LEDV writes LEDB then LEDI with mixed levels',
+      [(a, c, d) for a, c, d in w],
+      [(DAC, 0x30, expect(min(1.0, 0.5 * sf + 1.0), 0.087)), (DAC, 0x35, expect(min(1.0, 0.5 + 0.1), 0.087))])
+# clamp: full-scale limit per channel
 app.LED_DAC_FULLSCALE['LEDC'] = 0.5
 app.sysData[M]['LEDC']['target'] = 1.0; app.SetOutputOn(M, 'LEDC', 1)
-check('LEDC clamped to 50% full-scale', dac_writes(), [(0x4A, 0x32, [0x80, 0x00])])
-# all off writes every channel to zero
+check('LEDC clamped to 50% of DAC range', dac_writes(), [(DAC, 0x31, expect(1.0, 0.087, 0.5))])
+# all off writes all 8 channels to zero
 app.setAllLEDsZero(M)
 w = dac_writes()
-check('all-off hits 10 channels, all zero', (len(w), all(d == [0, 0] for _, _, d in w)), (10, True))
+check('all-off writes 8 channels, all zero', (len(w), all(d == [0, 0] for _, _, d in w), sorted(c for _, c, _ in w)),
+      (8, True, [0x30 + i for i in range(8)]))
 # PWM mode still routes to the PCA9685
 app.LED_DRIVE_MODE = 'PWM'; log.clear()
-app.sysData[M]['LEDA']['target'] = 1.0; app.SetOutputOn(M, 'LEDA', 1)
+app.sysData[M]['LEDB']['target'] = 1.0; app.SetOutputOn(M, 'LEDB', 1)
 pca = any(e[0] == 0x60 for e in log)
 check('PWM mode uses PCA9685 (0x60), no DAC writes', (dac_writes(), pca), ([], True))
 sys.exit(1 if fails else 0)

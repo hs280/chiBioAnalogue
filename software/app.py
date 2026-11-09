@@ -116,21 +116,26 @@ for M in ['M1','M2','M3','M4','M5','M6','M7']:
 
 # ---- Analogue LED driver configuration ----------------------------------------------------
 LED_DRIVE_MODE = 'ANALOGUE'   # 'ANALOGUE' = DAC-set CCR current (this variant); 'PWM' = original digital LED boards.
-LED_DAC_BITS = 12             # Resolution of the LED DACs (DAC7578 = 12 bit).
-# I2C addresses of the two octal LED DACs on the Side board (seen through each device's own mux channel).
-# 0x48 is taken by the laser DAC, so these must differ from it. CONFIRM against the DAC datasheet / ADD0 strapping.
-LED_DAC_ADDRESSES = {'LEDDAC0' : 0x4A, 'LEDDAC1' : 0x4C}
-# Output name -> (DAC chip, DAC channel 0-7). Channel numbering follows the Side board netlist.
+LED_DAC_BITS = 12             # Resolution of the LED DAC (DAC7578 = 12 bit).
+# I2C address of the octal LED DAC on the Side board (seen through each device's own mux channel).
+# 0x48 is taken by the laser DAC, so this must differ from it. CONFIRM against the DAC datasheet / ADDR0, ADDR1 strapping.
+LED_DAC_ADDRESSES = {'LEDDAC0' : 0x4A}
+# Output name -> (DAC chip, DAC channel 0-7). This is the set of LEDs actually fitted on the Side board (LED version 2):
+# Blue, Cyan, Green, Red, Amber/Yellow, Lime (x2) and the UV LED. LEDA, LEDE and LEDG do not exist on this board; setLED() ignores them.
+# LEDJ is the second lime LED. Upstream software never drives it, so it is only ever written to zero.
 LED_DAC_MAP = {
-    'LEDA' : ('LEDDAC0', 0), 'LEDB' : ('LEDDAC0', 1), 'LEDC' : ('LEDDAC0', 2), 'LEDD' : ('LEDDAC0', 3),
-    'LEDE' : ('LEDDAC0', 4), 'LEDF' : ('LEDDAC0', 5), 'LEDG' : ('LEDDAC0', 6), 'LEDH' : ('LEDDAC0', 7),
-    'LEDI' : ('LEDDAC1', 0), 'UV'   : ('LEDDAC1', 1),
+    'LEDB' : ('LEDDAC0', 0), 'LEDC' : ('LEDDAC0', 1), 'LEDD' : ('LEDDAC0', 2), 'LEDF' : ('LEDDAC0', 3),
+    'LEDH' : ('LEDDAC0', 4), 'LEDI' : ('LEDDAC0', 5), 'LEDJ' : ('LEDDAC0', 6), 'UV'   : ('LEDDAC0', 7),
 }
-# Highest DAC fraction allowed per output (0-1). Lets you clamp a channel to its safe LED current without touching
+# Each CCR stage deliberately biases its op-amp inverting input about 60 mV above the sense node (1M from the supply rail,
+# 10k from the sense resistor) so that zero set-point is a true off. The cost is a dead zone: the DAC must exceed this
+# fraction of full scale before any current flows. setLED() adds it back so that intensity 0-1 maps linearly onto 0-100% current.
+# Calculated from the schematic: 6 V x 10k/1.01M = 59 mV of 683 mV full scale for the LEDs; 12 V x 10k/1.01M = 119 mV of 3.3 V for UV. MEASURE and adjust per channel.
+LED_DAC_DEADBAND = {'LEDB' : 0.087, 'LEDC' : 0.087, 'LEDD' : 0.087, 'LEDF' : 0.087,
+                    'LEDH' : 0.087, 'LEDI' : 0.087, 'LEDJ' : 0.087, 'UV' : 0.036}
+# Highest DAC fraction allowed per output (0-1). Lets you clamp a channel to a safe LED current without touching
 # the user-facing 0-1 intensity scale. Set after measuring each channel's current at full scale.
 LED_DAC_FULLSCALE = {name : 1.0 for name in LED_DAC_MAP}
-# Optional per-channel offset in DAC codes added whenever a channel is ON (compensates op-amp offset / dead-band).
-LED_DAC_OFFSET_CODES = {name : 0 for name in LED_DAC_MAP}
 
 #sysItems stores information about digital addresses which is used as a reference for all devices.        
 sysItems = {
@@ -1793,12 +1798,15 @@ def setLED(M,item,fraction):
     if LED_DRIVE_MODE=='PWM':
         setPWM(M,'PWM',sysItems[item],fraction,0)
         return
+    if item not in LED_DAC_MAP:
+        return #This LED is not fitted on the analogue Side board.
     dacName,channel=LED_DAC_MAP[item]
     maxCode=(1<<LED_DAC_BITS)-1
     if fraction<=0.0:
-        code=0 #Off is always exactly zero-scale; the offset below only applies while ON.
+        code=0 #Off is always exactly zero-scale.
     else:
-        code=int(fraction*LED_DAC_FULLSCALE[item]*maxCode+0.5)+LED_DAC_OFFSET_CODES[item]
+        dead=LED_DAC_DEADBAND[item]
+        code=int(round((dead+fraction*(1.0-dead))*LED_DAC_FULLSCALE[item]*maxCode)) #Linear in current above the dead zone.
         code=min(max(code,0),maxCode)
     writeLEDDAC(M,dacName,channel,code)
 
